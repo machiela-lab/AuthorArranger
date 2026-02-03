@@ -44,6 +44,22 @@ export class CloudFrontS3Stack extends cdk.Stack {
       cdk.Tags.of(this.bucket).add(key, value);
     });
 
+    // Create Response Headers Policy with HSTS
+    const responseHeadersPolicy = new cloudfront.ResponseHeadersPolicy(
+      this,
+      "SecurityHeadersPolicy",
+      {
+        securityHeadersBehavior: {
+          strictTransportSecurity: {
+            accessControlMaxAge: cdk.Duration.seconds(31536000), // 1 year
+            includeSubdomains: true,
+            preload: true,
+            override: true,
+          },
+        },
+      }
+    );
+
     // Create CloudFront distribution
     this.distribution = new cloudfront.Distribution(this, "FrontendDistribution", {
       comment: `CloudFront distribution for authorarranger-${tier}.nci.nih.gov`,
@@ -52,6 +68,7 @@ export class CloudFrontS3Stack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+        responseHeadersPolicy: responseHeadersPolicy,
       },
       defaultRootObject: "index.html",
       errorResponses: [
