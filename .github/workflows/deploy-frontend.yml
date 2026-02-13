@@ -19,6 +19,7 @@ permissions:
 
 jobs:
   deploy:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     environment: ${{ inputs.tier }}
     env:
@@ -28,12 +29,12 @@ jobs:
       NODE_OPTIONS: --openssl-legacy-provider
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: "actions/checkout@v6.0.1"
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.0
+        uses: aws-actions/configure-aws-credentials@v5.1.1
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-cicd
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/power-user-github-actions-cicd
           role-session-name: ${{ env.TIER }}-authorarranger-frontend-${{ github.ref_name }}
           aws-region: ${{ env.AWS_REGION }}
 
@@ -53,7 +54,7 @@ jobs:
       - name: Deploy to S3
         run: |
           echo "Deploying to S3..."
-          aws s3 sync docs/ s3://author-arranger-website-${{ env.TIER }} --delete
+          aws s3 sync docs/ s3://nci-cbiit-author-arranger-website-${{ env.TIER }} --delete
 
       - name: Invalidate CloudFront Cache
         run: |
@@ -95,6 +96,6 @@ jobs:
           
           echo "Frontend deployment complete!"
           echo "Environment: ${{ env.TIER }}"
-          echo "S3 Bucket: author-arranger-website-${{ env.TIER }}"
+          echo "S3 Bucket: nci-cbiit-author-arranger-website-${{ env.TIER }}"
           echo "CloudFront URL: https://$CLOUDFRONT_URL"
           echo "Custom Domain: https://authorarranger-${{ env.TIER }}.nci.nih.gov"
